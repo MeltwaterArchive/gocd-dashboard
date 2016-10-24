@@ -13,7 +13,7 @@ ui = flask.Blueprint('ui', __name__)
 
 @attr.s(frozen=True)
 class Config:
-    pipelines = attr.ib()
+    groups = attr.ib()
     gocd = attr.ib()
 
     @classmethod
@@ -24,18 +24,18 @@ class Config:
         gocd = gocd_dashboard.gocd.GoCD(
             log=flask.current_app.logger, **data.get('gocd'))
 
-        return cls(gocd=gocd, pipelines=data.get('pipelines'))
+        return cls(gocd=gocd, groups=data.get('groups'))
 
     @classmethod
     def load(cls):
         return cls.from_file(os.getenv('GOCD_DASHBOARD_CONFIG', 'config.json'))
 
-    def groups(self):
-        return self.gocd.groups(self.pipelines)
+    def load_groups(self):
+        return self.gocd.groups(self.groups)
 
 
 @ui.route('/')
 def dashboard():
     config = Config.load()
-    return flask.render_template('home.html', groups=config.groups())
+    return flask.render_template('home.html', groups=config.load_groups())
 

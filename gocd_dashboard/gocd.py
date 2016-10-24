@@ -52,8 +52,9 @@ class GoCD:
         return [Pipeline.from_json(self.wait(r)) for r in responses]
 
     def groups(self, groups):
-        return [Group(name=n, pipelines=self.pipelines(p))
-                for n, p in groups.items()]
+        return [Group(name=group.get('name'),
+                      pipelines=self.pipelines(group.get('pipelines')))
+                for group in groups]
 
 
 @attr.s(frozen=True)
