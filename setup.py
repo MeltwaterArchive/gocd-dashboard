@@ -16,7 +16,8 @@ setuptools.setup(
     install_requires=[
         'attrs',
         'flask>=0.11.1',
-        'requests'
+        'requests',
+        'requests-futures'
     ],
 
     extras_require={
