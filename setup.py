@@ -14,7 +14,9 @@ setuptools.setup(
     zip_safe=False,
 
     install_requires=[
-        'flask>=0.10.0'
+        'attrs',
+        'flask>=0.11.1',
+        'requests'
     ],
 
     extras_require={
@@ -31,7 +33,6 @@ setuptools.setup(
             'gocd-dashboard = gocd_dashboard.cli:main',
         ]
     },
-
 
     classifiers=[
         'Programming Language :: Python',

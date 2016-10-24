@@ -8,9 +8,6 @@ import gocd_dashboard.blueprints
 def create_app(info):
     app = flask.Flask(__name__)
 
-    # Load configuration from an optional instance config file
-    app.config.from_pyfile('config.py', silent=True)
-
     # Register blueprints - currently only the user interface
     app.register_blueprint(gocd_dashboard.blueprints.ui)
 

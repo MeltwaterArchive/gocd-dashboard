@@ -3,6 +3,26 @@
 
 </head>
 <body>
-    Hello world. (Again.)
+<h1>Gocd Dashboard</h1>
+    {% for group in groups %}
+        <h2>{{ group.name }}</h2>
+        <ul>
+            {% for pipeline in group.pipelines %}
+                <li>
+                    <strong>{{ pipeline.name }}/{{ pipeline.counter }}</strong>
+                    {% if pipeline.passed() %}
+                        (Passed)
+                    {% else %}
+                        (Failed)
+                    {% endif %}
+                    <ul>
+                        {% for stage in pipeline.stages %}
+                            <li>{{ stage.name }}: {{ stage.result }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
 </body>
 </html>

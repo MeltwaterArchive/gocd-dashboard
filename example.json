@@ -1,0 +1,14 @@
+{
+  "gocd": {
+    "url": "https://gocd.example.com",
+    "username": "guest",
+    "password": "guest"
+  },
+  "pipelines": {
+    "group": [
+      "pipeline-a",
+      "pipeline-b"
+    ]
+  }
+}
+
