@@ -60,7 +60,7 @@ class GoCD:
         """Make a `Pipeline` object from a .pipeline_instance() response."""
         return Pipeline.from_json(self.wait(response), self)
 
-    def pipelines(self, pipelines):
+    def load_pipelines(self, pipelines):
         """Async."""
         histories = [(n, self.pipeline_history(n)) for n in pipelines]
         responses = [self.latest_pipeline_instance(n, self.wait(h))
@@ -69,7 +69,7 @@ class GoCD:
 
     def groups(self, groups):
         return [Group(name=group['name'],
-                      pipelines=self.pipelines(group['pipelines']))
+                      pipelines=self.load_pipelines(group['pipelines']))
                 for group in groups]
 
 
@@ -90,22 +90,49 @@ class Pipeline:
     name = attr.ib()
     counter = attr.ib()
     stages = attr.ib()
-    materials = attr.ib()
+    git_materials = attr.ib()
+    pipeline_materials = attr.ib()
 
     @classmethod
     def from_json(cls, data, gocd):
+        revisions = data['build_cause']['material_revisions']
+
         return cls(
             name=data['name'],
             counter=data['counter'],
             stages=list(map(Stage.from_json, data['stages'])),
-            materials=Materials.from_json(
-                data['build_cause']['material_revisions'], gocd))
+            git_materials=cls.git_materials_from_json(revisions),
+            pipeline_materials=cls.pipeline_materials_from_json(revisions, gocd))
+
+    @staticmethod
+    def git_materials_from_json(material_revisions):
+        return [GitMaterial.from_json(revision)
+                for revision in material_revisions
+                if revision['material']['type'] == 'Git']
+
+    @classmethod
+    def pipeline_materials_from_json(cls, material_revisions, gocd):
+        responses = [cls.from_material(material, gocd)
+                     for material in material_revisions
+                     if material['material']['type'] == 'Pipeline']
+
+        return [gocd.pipeline(r) for r in responses]
+
+    @classmethod
+    def from_material(cls, material, gocd):
+        assert len(material['modifications']) == 1
+        name, counter = material['modifications'][0]['revision'].split('/')[:2]
+        return gocd.pipeline_instance(name, counter)
 
     def result(self):
         return 'Passed' if self.passed() else 'Failed'
 
     def passed(self):
         return all(s.passed() for s in self.stages)
+
+    def all_git_materials(self):
+        sub_git_materials = [p.git_materials for p in self.pipeline_materials]
+        return itertools.chain(self.git_materials, *sub_git_materials)
 
 
 @attr.s(frozen=True)
@@ -121,91 +148,84 @@ class Stage:
         return self.result in ('Passed', None)
 
 
-class Materials(list):
-    @classmethod
-    def from_json(cls, revisions, gocd):
-        # noinspection PyCallingNonCallable
-        return cls([cls.material_from_json(r, gocd) for r in revisions])
-
-    @staticmethod
-    def material_from_json(material, gocd):
-        if material['material']['type'] == 'Pipeline':
-            return PipelineMaterial.from_json(material, gocd)
-        elif material['material']['type'] == 'Git':
-            return GitMaterial.from_json(material)
-        else:
-            raise RuntimeError('Unknown type ' + material['material']['type'])
-
-    @classmethod
-    def children(cls, data, gocd):
-        if data['material']['type'] != 'Pipeline':
-            return []
-
-        revisions = [m['revision'] for m in data['modifications']]
-        instances = [r.split('/')[0:2] for r in revisions]
-        responses = [gocd.pipeline_instance(n, c) for n, c in instances]
-        pipelines = [gocd.pipeline(r) for r in responses]
-        return itertools.chain(*[p.materials for p in pipelines])
-
-    def pipelines(self):
-        """Returns only pipeline materials."""
-        return [m for m in self if m.type == 'Pipeline']
-
-
 @attr.s(frozen=True)
 class GitMaterial:
     type = 'git'
 
-    repo = attr.ib()
-    branch = attr.ib()
+    url = attr.ib()
     modifications = attr.ib()
+
+    # GitHub organisation and repository, used to create links.
+    gh = attr.ib(convert=bool)
+    gh_org = attr.ib()
+    gh_repo = attr.ib()
+
+    RE_URL = re.compile('^URL: (.+), Branch: .+$')
+    RE_GITHUB = re.compile('^git@github\.com:([\w-]+)/([\w-]+)\.git$')
 
     @classmethod
     def from_json(cls, material):
-        description = material['material']['description']
-        match = re.match("^URL: (.+), Branch: (.+)$", description)
-
+        url = cls.parse_url(material['material']['description'])
+        gh_org, gh_repo = cls.parse_github(url)
         modifications = [GitModification.from_json(m)
                          for m in material['modifications']]
+        return cls(url=url, modifications=modifications,
+                   gh=(gh_org and gh_repo), gh_org=gh_org, gh_repo=gh_repo)
 
-        return cls(repo=match.group(1),
-                   branch=match.group(2),
-                   modifications=modifications)
+    @classmethod
+    def parse_url(cls, description):
+        url = re.match(cls.RE_URL, description)
+        if url is None:
+            raise RuntimeError("Could not parse '{}'".format(description))
+        return url.group(1)
 
-    GITHUB = re.compile('^git@github\.com:([\w-]+)/([\w-]+)\.git$')
+    @classmethod
+    def parse_github(cls, url):
+        match = cls.RE_GITHUB.match(url)
+        return match.groups() if match else (None, None)
 
-    def github_link(self, *args):
-        match = self.GITHUB.match(self.repo)
-        if match:
-            url = "https://github.com/{}/{}".format(*match.groups())
-            return '/'.join((url,) + args)
+    def name(self):
+        return self.gh_name() if self.gh else self.url
+
+    def link(self):
+        return self.gh_link() if self.gh else self.url
+
+    def gh_name(self):
+        return '{}/{}'.format(self.gh_org, self.gh_repo)
+
+    def gh_link(self, *args):
+        if not self.gh:
+            return None
+        return '/'.join(
+            ('https://github.com', self.gh_org, self.gh_repo) + args)
 
 
 @attr.s(frozen=True)
 class GitModification:
     message = attr.ib()
     commit = attr.ib()
-    user = attr.ib()
+
+    # Name and email of the person who wrote the commit.
+    author_name = attr.ib()
+    author_email = attr.ib()
 
     @classmethod
     def from_json(cls, modification):
+        author_name, author_email = cls.parse_author(modification['user_name'])
+
         return cls(message=modification['comment'],
                    commit=modification['revision'],
-                   user=modification['user_name'])
+                   author_name=author_name,
+                   author_email=author_email)
 
-    def github_link(self, material):
-        return material.github_link('commit', self.commit)
-
-
-@attr.s(frozen=True)
-class PipelineMaterial:
-    type = 'pipeline'
-
-    name = attr.ib()
-    materials = attr.ib()
+    RE_AUTHOR = re.compile('(.+) <(.+)>')
 
     @classmethod
-    def from_json(cls, material, gocd):
-        return cls(
-            name=material['material']['description'],
-            materials=Materials.children(material, gocd))
+    def parse_author(cls, author):
+        match = cls.RE_AUTHOR.match(author)
+        if not match:
+            return author
+        return match.groups()
+
+    def gh_link(self, material):
+        return material.gh_link('commit', self.commit)

@@ -13,12 +13,16 @@ body {
     margin-bottom: 1em;
 }
 
+.group.failed {
+    background: #EEBBBB;
+}
+
 .group h2 {
     margin: 0;
 }
 
-.group.failed {
-    background: #EEBBBB;
+.group h3 {
+    margin-bottom: 0;
 }
 
 .group.failed > .name,

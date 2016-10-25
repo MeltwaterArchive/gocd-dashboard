@@ -13,53 +13,60 @@
         <ul>
         {%- for pipeline in group.pipelines %}
             <li id="{{ pipeline.name|lower }}" class="pipeline {{ pipeline.result()|lower }}">
-                <strong class="name">
+                <h3 class="name">
                     {{ pipeline.name }}/{{ pipeline.counter }}
-                </strong>
-                <span class="result">
-                    ({{ pipeline.result() }})
-                </span>
-                {%- if pipeline.stages %}
+                </h3>
+            {%- if pipeline.stages %}
                 <div class="stages">
                     <span>Stages</span>
                     <ul>
                         {%- for stage in pipeline.stages %}
                             <li class="stage {{ stage.result|lower }}">
                                 <code class="name">{{ stage.name }}</code>
-                                ({{ stage.result }})
                             </li>
                         {%- endfor %}
                     </ul>
                 </div>
-                {% endif %}
-                <div class="materials">
-                    <span>Materials</span>
+            {% endif %}
+            {%- if pipeline.pipeline_materials %}
+                <div class="pipeline_materials">
+                    <span>Pipelines</span>
                     <ul>
-                        {% for material in pipeline.materials recursive %}
-                            <li class="material">
-                            {% if material.type == 'pipeline' %}
+                        {%- for material in pipeline.pipeline_materials recursive %}
+                            <li class="pipeline_material">
                                 <code>{{ material.name }}</code>
                                 <ul>
-                                    {{ loop(material.materials) }}
+                                    {{ loop(material.pipeline_materials) }}
                                 </ul>
-                            {% elif material.type == 'git' %}
-                                <a href="{{ material.github_link() }}">
-                                    <code>{{ material.repo }}</code>
-                                </a>
-                                <ul>
+                            </li>
+                        {%- endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+                <div class="git_materials">
+                    <span>Commits</span>
+                    <ul>
+                    {%- for material in pipeline.all_git_materials() %}
+                        <li class="git_material">
+                            <a href="{{ material.link() }}">
+                                <code>{{ material.name() }}</code>
+                            </a>
+                            <ul>
                                 {% for modification in material.modifications %}
                                     <li>
-                                        <a href="{{ modification.github_link(material) }}">
-                                            <code>{{ modification.message }}</code>
+                                        <a href="{{ modification.gh_link(material) }}">
+                                            <code>{{ modification.message|truncate(80, true) }}</code>
                                         </a>
-                                        <br>
-                                        <code>{{ modification.user }}</code>
+                                        <small>
+                                            (<a href="mailto:{{ modification.author_email }}">{{ modification.author_name }}</a>)
+                                        </small>
                                     </li>
                                 {% endfor %}
-                                </ul>
-                            {% endif %}
-                            </li>
-                        {% endfor %}
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li>No materials?</li>
+                    {%- endfor %}
                     </ul>
                 </div>
             </li>

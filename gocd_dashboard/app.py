@@ -1,6 +1,7 @@
 """Routes."""
 
 import flask
+import jinja2
 
 import gocd_dashboard.blueprints
 
@@ -20,6 +21,8 @@ def create_app(info):
 
 def debug_app(app):
     """Add the debug toolbar extension to the application."""
+    app.jinja_env.undefined = jinja2.StrictUndefined
+
     try:
         import flask_debugtoolbar
     except ImportError:
