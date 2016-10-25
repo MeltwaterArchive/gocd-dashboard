@@ -124,15 +124,20 @@ class Pipeline:
         name, counter = material['modifications'][0]['revision'].split('/')[:2]
         return gocd.pipeline_instance(name, counter)
 
+    def all_git_materials(self):
+        sub_git_materials = [p.all_git_materials() for p in self.pipeline_materials]
+        return itertools.chain(self.git_materials, *sub_git_materials)
+
+    # Results
+
     def result(self):
         return 'Passed' if self.passed() else 'Failed'
 
     def passed(self):
         return all(s.passed() for s in self.stages)
 
-    def all_git_materials(self):
-        sub_git_materials = [p.git_materials for p in self.pipeline_materials]
-        return itertools.chain(self.git_materials, *sub_git_materials)
+    def failed_stage(self):
+        return next((s for s in self.stages if not s.passed()), None)
 
 
 @attr.s(frozen=True)

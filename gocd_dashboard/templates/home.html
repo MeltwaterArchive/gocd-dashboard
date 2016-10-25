@@ -16,18 +16,11 @@
                 <h3 class="name">
                     {{ pipeline.name }}/{{ pipeline.counter }}
                 </h3>
-            {%- if pipeline.stages %}
-                <div class="stages">
-                    <span>Stages</span>
-                    <ul>
-                        {%- for stage in pipeline.stages %}
-                            <li class="stage {{ stage.result|lower }}">
-                                <code class="name">{{ stage.name }}</code>
-                            </li>
-                        {%- endfor %}
-                    </ul>
+            {%- if not pipeline.passed() %}
+                <div>
+                    Failed on stage <span class="stage">{{ pipeline.failed_stage().name }}</span>.
                 </div>
-            {% endif %}
+            {%- endif %}
             {%- if pipeline.pipeline_materials %}
                 <div class="pipeline_materials">
                     <span>Pipelines</span>
@@ -66,6 +59,7 @@
                         </li>
                     {% else %}
                         <li>No materials?</li>
+                        <code>{{ pipeline|pprint }}</code>
                     {%- endfor %}
                     </ul>
                 </div>

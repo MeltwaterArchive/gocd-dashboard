@@ -27,6 +27,6 @@ body {
 
 .group.failed > .name,
 .pipeline.failed > .name,
-.stage.failed > .name {
+.pipeline.failed .stage {
     color: red;
 }
