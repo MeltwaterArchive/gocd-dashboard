@@ -1,14 +1,6 @@
 body {
-    font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', 'Monaco', Courier, monospace;
+    font-family: 'Ubuntu', 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
     background: #EEEEEE;
-}
-
-.passed {
-    color: darkgreen;
-}
-
-.failed {
-    color: red;
 }
 
 .header {
@@ -25,10 +17,12 @@ body {
     margin: 0;
 }
 
-.group.passed {
-    background: lightgreen;
+.group.failed {
+    background: #EEBBBB;
 }
 
-.group.failed {
-    background: lightpink;
+.group.failed > .name,
+.pipeline.failed > .name,
+.stage.failed > .name {
+    color: red;
 }

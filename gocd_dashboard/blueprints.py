@@ -21,10 +21,8 @@ class Config:
         with open(path, 'r') as f:
             data = json.loads(f.read())
 
-        gocd = gocd_dashboard.gocd.GoCD(
-            log=flask.current_app.logger, **data.get('gocd'))
-
-        return cls(gocd=gocd, groups=data.get('groups'))
+        return cls(gocd=gocd_dashboard.gocd.GoCD(**data.get('gocd')),
+                   groups=data.get('groups'))
 
     @classmethod
     def load(cls):
