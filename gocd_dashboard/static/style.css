@@ -1,0 +1,34 @@
+body {
+    font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', 'Monaco', Courier, monospace;
+    background: #EEEEEE;
+}
+
+.passed {
+    color: darkgreen;
+}
+
+.failed {
+    color: red;
+}
+
+.header {
+    text-align: center;
+}
+
+.group {
+    padding: 1em 1em 0 1em;
+    border: 2px solid black;
+    margin-bottom: 1em;
+}
+
+.group h2 {
+    margin: 0;
+}
+
+.group.passed {
+    background: lightgreen;
+}
+
+.group.failed {
+    background: lightpink;
+}

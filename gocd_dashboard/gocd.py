@@ -62,6 +62,12 @@ class Group:
     name = attr.ib()
     pipelines = attr.ib()
 
+    def result(self):
+        return 'Passed' if self.passed() else 'Failed'
+
+    def passed(self):
+        return all(s.passed() for s in self.pipelines)
+
 
 @attr.s(frozen=True)
 class Pipeline:
@@ -77,8 +83,11 @@ class Pipeline:
             stages=[Stage.from_json(s) for s in data.get('stages')]
         )
 
+    def result(self):
+        return 'Passed' if self.passed() else 'Failed'
+
     def passed(self):
-        return all([s.passed() for s in self.stages])
+        return all(s.passed() for s in self.stages)
 
 
 @attr.s(frozen=True)
@@ -91,4 +100,4 @@ class Stage:
         return cls(name=data.get('name'), result=data.get('result'))
 
     def passed(self):
-        return self.result == 'Passed'
+        return self.result in ('Passed', None)

@@ -1,28 +1,31 @@
+<!DOCTYPE html>
 <html>
 <head>
-
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
-<h1>Gocd Dashboard</h1>
-    {% for group in groups %}
+    <div class="header">
+        <h1>Gocd Dashboard</h1>
+    </div>
+{%- for group in groups %}
+    <div id="{{ group.name|lower }}" class="group {{ group.result()|lower }}">
         <h2>{{ group.name }}</h2>
         <ul>
-            {% for pipeline in group.pipelines %}
-                <li>
-                    <strong>{{ pipeline.name }}/{{ pipeline.counter }}</strong>
-                    {% if pipeline.passed() %}
-                        (Passed)
-                    {% else %}
-                        (Failed)
-                    {% endif %}
-                    <ul>
-                        {% for stage in pipeline.stages %}
-                            <li>{{ stage.name }}: {{ stage.result }}</li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
+        {%- for pipeline in group.pipelines %}
+            <li class="{{ pipeline.result()|lower }}">
+                <strong>{{ pipeline.name }}/{{ pipeline.counter }}</strong>
+                <span>({{ pipeline.result() }})</span>
+                <ul>
+                {%- for stage in pipeline.stages %}
+                    <li class="{{ stage.result|lower }}">
+                        {{ stage.name }} ({{ stage.result }})
+                    </li>
+                {%- endfor %}
+                </ul>
+            </li>
+        {%- endfor %}
         </ul>
-    {% endfor %}
+    </div>
+{%- endfor %}
 </body>
 </html>
