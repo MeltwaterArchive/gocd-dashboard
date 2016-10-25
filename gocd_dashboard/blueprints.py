@@ -29,7 +29,7 @@ class Config:
         return cls.from_file(os.getenv('GOCD_DASHBOARD_CONFIG', 'config.json'))
 
     def load_groups(self):
-        return self.gocd.groups(self.groups)
+        return self.gocd.load_groups(self.groups)
 
 
 @ui.route('/')

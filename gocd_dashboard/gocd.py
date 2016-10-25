@@ -13,7 +13,7 @@ class GoCD:
     GoCD client for fetching statuses of a set of pipelines.
 
     Uses requests-futures to make async requests, due to the number of api
-    endpoints this will call.
+    endpoints this will call. The API is a bit funny due to this...
     """
 
     url = attr.ib()
@@ -51,23 +51,23 @@ class GoCD:
                         name, counter)
 
     def latest_pipeline_instance(self, name, history):
+        """Get the most recent pipeline instance."""
         counter = history['pipelines'][0]['counter']
         return self.pipeline_instance(name, counter)
 
     # Data structure creation.
 
-    def pipeline(self, response):
+    def wait_pipelines(self, responses):
         """Make a `Pipeline` object from a .pipeline_instance() response."""
-        return Pipeline.from_json(self.wait(response), self)
+        return [Pipeline.from_json(self.wait(r), self) for r in responses]
 
     def load_pipelines(self, pipelines):
-        """Async."""
         histories = [(n, self.pipeline_history(n)) for n in pipelines]
         responses = [self.latest_pipeline_instance(n, self.wait(h))
                      for (n, h) in histories]
-        return [self.pipeline(response) for response in responses]
+        return self.wait_pipelines(responses)
 
-    def groups(self, groups):
+    def load_groups(self, groups):
         return [Group(name=group['name'],
                       pipelines=self.load_pipelines(group['pipelines']))
                 for group in groups]
@@ -112,11 +112,9 @@ class Pipeline:
 
     @classmethod
     def pipeline_materials_from_json(cls, material_revisions, gocd):
-        responses = [cls.from_material(material, gocd)
-                     for material in material_revisions
-                     if material['material']['type'] == 'Pipeline']
-
-        return [gocd.pipeline(r) for r in responses]
+        return gocd.wait_pipelines([cls.from_material(m, gocd)
+                                    for m in material_revisions
+                                    if m['material']['type'] == 'Pipeline'])
 
     @classmethod
     def from_material(cls, material, gocd):
@@ -124,9 +122,13 @@ class Pipeline:
         name, counter = material['modifications'][0]['revision'].split('/')[:2]
         return gocd.pipeline_instance(name, counter)
 
+    # Instance methods.
+
     def all_git_materials(self):
-        sub_git_materials = [p.all_git_materials() for p in self.pipeline_materials]
-        return itertools.chain(self.git_materials, *sub_git_materials)
+        """Recursively collect git materials."""
+        return itertools.chain(
+            self.git_materials,
+            *(p.all_git_materials() for p in self.pipeline_materials))
 
     # Results
 
