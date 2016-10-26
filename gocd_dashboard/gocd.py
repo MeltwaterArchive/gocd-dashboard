@@ -1,10 +1,15 @@
 import itertools
+import pprint
 import re
 
 import attr
 import requests_futures.sessions
 
 import flask
+
+
+def debug(*objects):
+    flask.current_app.logger.debug('\n'.join(map(pprint.pformat, objects)))
 
 
 @attr.s(frozen=True)
@@ -83,8 +88,12 @@ class Pipeline:
     gocd = attr.ib(repr=False)
 
     @classmethod
-    def from_json(cls, data, gocd):
+    def from_json(cls, data, gocd, changed=True):
         revisions = data['build_cause']['material_revisions']
+
+        if changed:
+            revisions = [r for r in revisions if r['changed']]
+
         return cls(
             name=data['name'],
             counter=data['counter'],
@@ -95,9 +104,9 @@ class Pipeline:
 
     @staticmethod
     def git_materials_from_json(material_revisions):
-        return [GitMaterial.from_json(revision)
-                for revision in material_revisions
-                if revision['material']['type'] == 'Git']
+        return [GitMaterial.from_json(r)
+                for r in material_revisions
+                if r['material']['type'] == 'Git']
 
     @classmethod
     def pipelines_from_materials(cls, material_revisions, gocd):

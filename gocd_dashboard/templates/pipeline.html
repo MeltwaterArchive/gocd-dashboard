@@ -3,7 +3,7 @@
 {%- endmacro %}
 
 {% macro git_modification_link(modification, material) -%}
-    <a href="{{ modification.gh_link(material) }}">{{ modification.revision|truncate(7, true, '') }}</a>
+    <small>(<a href="{{ modification.gh_link(material) }}"><code>{{ modification.revision|truncate(7, true, '') }}</code></a>)</small>
 {%- endmacro %}
 
 {% macro pipeline_material_link(pipeline) -%}
@@ -13,37 +13,42 @@
 {% macro pipeline(pipeline) %}
     <div class="card {% if not pipeline.passed() %}red lighten-4{% endif %}">
         <div class="card-content">
-            <span class="card-title">{{ pipeline.title }}</span>
+            <span class="card-title">
+                <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
+            </span>
 
+            <p>
             {%- if pipeline.git_material and not pipeline.pipeline_material %}
-                <p>
-                    Builds repository {{ git_material_link(pipeline.git_material) }}
-                    {% if pipeline.git_material.gh %}({{ git_modification_link(pipeline.git_material.modifications[0], pipeline.git_material) }}){% endif %}.
-                </p>
+                Built changes from {{ git_material_link(pipeline.git_material) }} {{ git_modification_link(pipeline.git_material.modifications[0], pipeline.git_material) }}.
             {%- elif pipeline.pipeline_material and not pipeline.git_material %}
-                <p>Triggered by {{ pipeline_material_link(pipeline.pipeline_material) }}.</p>
+                Triggered by {{ pipeline_material_link(pipeline.pipeline_material) }}.
             {%- elif pipeline.pipeline_materials %}
-                {% set all_git = pipeline.all_git_materials() %}
-                <p>Triggered by <a href="{{ pipeline.value_stream_map }}" title="{{ pipeline.pipeline_materials|map(attribute='title')|join(', ') }}">{{ pipeline.pipeline_materials|length }} pipelines</a>{% if all_git %} and {{ all_git|length }} repositories{% endif %}.</p>
+                Triggered by <a href="{{ pipeline.value_stream_map }}" title="{{ pipeline.pipeline_materials|map(attribute='title')|join(', ') }}">{{ pipeline.pipeline_materials|length }} pipelines</a>.
+            {% else %}
+                No materials changed.
             {%- endif %}
+            </p>
 
-            {%- if not pipeline.passed() %}
+            <p>
+            {%- if pipeline.passed() %}
+                All stages passed.
+            {% else %}
                 {% set failed_stage = pipeline.failed_stage() %}
-                <p class="description">
-                    Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.
-                </p>
+                Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.
             {%- endif %}
+            </p>
         </div>
 
-{#        <div class="card-action">#}
-{#            <a href="{{ pipeline.value_stream_map }}">Open on GoCD</a>#}
-{#        </div>#}
-
         <div class="card-action">
-            {% for name, email in pipeline.all_commit_authors %}
+            {% for name, email in pipeline.all_commit_authors|sort %}
                 <div class="chip">
                     <img src="{{ email | gravatar }}" alt="{{ email }}" title="{{ name }} <{{ email }}>">
                     {{ name }}
+                </div>
+            {% else %}
+                <div class="chip">
+                    <img src="{{ url_for('static', filename='logos/gocd-avatar.png') }}" alt="GoCD">
+                    Trigged manually
                 </div>
             {% endfor %}
         </div>
