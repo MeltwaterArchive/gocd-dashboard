@@ -1,3 +1,4 @@
+{%- from 'pipeline.html' import pipeline -%}
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,13 +14,7 @@
         </div>
     </nav>
 
-    {% macro git_material_link(material) -%}
-        <a href="{{ material.link() }}">{{ material.name() }}</a>
-    {%- endmacro %}
 
-    {% macro pipeline_material_link(pipeline) -%}
-        <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
-    {%- endmacro %}
 
     {%- for group_batch in groups|batch(4) %}
         <div class="row">
@@ -27,33 +22,8 @@
                 <div class="col s12 m6 l3">
                     <div class="section">
                         <h3 class="header center">{{ group.name }}</h3>
-                        {%- for pipeline in group.pipelines %}
-                            <div class="card {% if not pipeline.passed() %}red lighten-4{% endif %}">
-                                <div class="card-content">
-                                    <span class="card-title">{{ pipeline.title }}</span>
-
-                                    {%- if not pipeline.passed() %}
-                                        {% set failed_stage = pipeline.failed_stage() %}
-                                        <p class="description">
-                                            Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.
-                                        </p>
-                                    {%- endif %}
-
-                                    {%- if pipeline.git_material %}
-                                        <p>Builds repository {{ git_material_link(pipeline.git_material) }}.</p>
-                                    {%- endif %}
-
-                                    {%- if pipeline.pipeline_material %}
-                                        <p>Triggered by {{ pipeline_material_link(pipeline.pipeline_material) }}.</p>
-                                    {%- elif pipeline.pipeline_materials %}
-                                        <p>Triggered by <a href="{{ pipeline.value_stream_map }}" title="{{ pipeline.pipeline_materials|map(attribute='title')|join(', ') }}">{{ pipeline.pipeline_materials|length }} pipelines</a>.</p>
-                                    {%- endif %}
-                                </div>
-
-                                <div class="card-action">
-                                    <a href="{{ pipeline.value_stream_map }}">Open on GoCD</a>
-                                </div>
-                            </div>
+                        {%- for p in group.pipelines %}
+                            {{ pipeline(p) }}
                         {%- endfor %}
                     </div>
                 </div>

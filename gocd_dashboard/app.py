@@ -1,6 +1,7 @@
 """Routes."""
 
 import flask
+import flask_gravatar
 import jinja2
 
 import gocd_dashboard.blueprints
@@ -8,6 +9,8 @@ import gocd_dashboard.blueprints
 
 def create_app(info):
     app = flask.Flask(__name__)
+
+    flask_gravatar.Gravatar(app, rating='g', use_ssl=True)
 
     # Register blueprints - currently only the user interface
     app.register_blueprint(gocd_dashboard.blueprints.ui)

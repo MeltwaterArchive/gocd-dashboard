@@ -136,6 +136,11 @@ class Pipeline:
         materials = itertools.chain(self.git_materials, *children)
         return sorted(materials, key=lambda p: p.url)
 
+    @property
+    def all_commit_authors(self):
+        return set(itertools.chain(
+            *(m.commit_authors for m in self.all_git_materials())))
+
     # Pipeline materials
 
     @property
@@ -232,11 +237,15 @@ class GitMaterial:
         return '/'.join(
             ('https://github.com', self.gh_org, self.gh_repo) + args)
 
+    @property
+    def commit_authors(self):
+        return {(m.author_name, m.author_email) for m in self.modifications}
+
 
 @attr.s(frozen=True)
 class GitModification:
     message = attr.ib()
-    commit = attr.ib()
+    revision = attr.ib()
 
     # Name and email of the person who wrote the commit.
     author_name = attr.ib()
@@ -249,7 +258,7 @@ class GitModification:
         author_name, author_email = cls.parse_author(modification['user_name'])
 
         return cls(message=modification['comment'],
-                   commit=modification['revision'],
+                   revision=modification['revision'],
                    author_name=author_name,
                    author_email=author_email)
 
@@ -264,4 +273,4 @@ class GitModification:
         return self.message.split('\n', 2)[0]
 
     def gh_link(self, material):
-        return material.gh_link('commit', self.commit)
+        return material.gh_link('commit', self.revision)

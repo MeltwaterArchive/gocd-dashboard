@@ -1,0 +1,51 @@
+{% macro git_material_link(material) -%}
+    <a href="{{ material.link() }}">{{ material.name() }}</a>
+{%- endmacro %}
+
+{% macro git_modification_link(modification, material) -%}
+    <a href="{{ modification.gh_link(material) }}">{{ modification.revision|truncate(7, true, '') }}</a>
+{%- endmacro %}
+
+{% macro pipeline_material_link(pipeline) -%}
+    <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
+{%- endmacro %}
+
+{% macro pipeline(pipeline) %}
+    <div class="card {% if not pipeline.passed() %}red lighten-4{% endif %}">
+        <div class="card-content">
+            <span class="card-title">{{ pipeline.title }}</span>
+
+            {%- if pipeline.git_material and not pipeline.pipeline_material %}
+                <p>
+                    Builds repository {{ git_material_link(pipeline.git_material) }}
+                    {% if pipeline.git_material.gh %}({{ git_modification_link(pipeline.git_material.modifications[0], pipeline.git_material) }}){% endif %}.
+                </p>
+            {%- elif pipeline.pipeline_material and not pipeline.git_material %}
+                <p>Triggered by {{ pipeline_material_link(pipeline.pipeline_material) }}.</p>
+            {%- elif pipeline.pipeline_materials %}
+                {% set all_git = pipeline.all_git_materials() %}
+                <p>Triggered by <a href="{{ pipeline.value_stream_map }}" title="{{ pipeline.pipeline_materials|map(attribute='title')|join(', ') }}">{{ pipeline.pipeline_materials|length }} pipelines</a>{% if all_git %} and {{ all_git|length }} repositories{% endif %}.</p>
+            {%- endif %}
+
+            {%- if not pipeline.passed() %}
+                {% set failed_stage = pipeline.failed_stage() %}
+                <p class="description">
+                    Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.
+                </p>
+            {%- endif %}
+        </div>
+
+{#        <div class="card-action">#}
+{#            <a href="{{ pipeline.value_stream_map }}">Open on GoCD</a>#}
+{#        </div>#}
+
+        <div class="card-action">
+            {% for name, email in pipeline.all_commit_authors %}
+                <div class="chip">
+                    <img src="{{ email | gravatar }}" alt="{{ email }}" title="{{ name }} <{{ email }}>">
+                    {{ name }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}

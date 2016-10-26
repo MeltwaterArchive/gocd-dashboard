@@ -16,6 +16,7 @@ setuptools.setup(
     install_requires=[
         'attrs',
         'flask>=0.11.1',
+        'Flask-Gravatar>=0.4.2',
         'requests',
         'requests-futures'
     ],
