@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='materialize/css/materialize.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='gocd.ico') }}"/>
 </head>
 <body>
     <nav class="deep-purple lighten-1">
@@ -13,8 +14,6 @@
             <a href="/" class="brand-logo center">GoCD Dashboard</a>
         </div>
     </nav>
-
-
 
     {%- for group_batch in groups|batch(4) %}
         <div class="row">
@@ -30,67 +29,5 @@
             {%- endfor %}
         </div>
     {%- endfor %}
-
-
-{#    {%- for group in groups %}#}
-{#    <div id="{{ group.name|lower }}" class="group {{ group.result()|lower }}">#}
-{#        <h2 class="name">{{ group.name }}</h2>#}
-{#    {%- for pipeline in group.pipelines %}#}
-{#        <div id="{{ pipeline.name|lower }}" class="pipeline {{ pipeline.result()|lower }}">#}
-{#            <h3 class="name">#}
-{#                <a href="{{ pipeline.link() }}">{{ pipeline.name }}/{{ pipeline.counter }}</a>#}
-{#            </h3>#}
-{#        {%- if not pipeline.passed() %}#}
-{#        {% set failed_stage = pipeline.failed_stage() %}#}
-{#            <p class="description">#}
-{#                Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.#}
-{#            </p>#}
-{#        {%- endif %}#}
-{#        {%- if pipeline.pipeline_materials %}#}
-{#            <div>#}
-{#                <h4>Pipelines</h4>#}
-{#                <ul class="materials">#}
-{#                {%- for pipeline_material in pipeline.pipeline_materials recursive %}#}
-{#                    <li class="material material-pipeline">#}
-{#                        <a class="link gocd" href="{{ pipeline_material.link() }}">{{ pipeline_material.name }}/{{ pipeline_material.counter }}</a>#}
-{#                        <ul class="materials">#}
-{#                            {{ loop(pipeline_material.pipeline_materials) }}#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {%- endfor %}#}
-{#                </ul>#}
-{#            </div>#}
-{#        {% endif %}#}
-{#            <div>#}
-{#                <h4>Commits</h4>#}
-{#                <ul class="materials">#}
-{#                {%- for material in pipeline.all_git_materials() %}#}
-{#                    <li class="material material-git">#}
-{#                    {% if material.gh %}#}
-{#                        <a class="link github" href="{{ material.gh_link() }}">{{ material.gh_name() }}</a>#}
-{#                    {% else %}#}
-{#                        <a class="link git" href="{{ material.url }}">#}
-{#                            <code>{{ material.url }}</code>#}
-{#                        </a>#}
-{#                    {% endif %}#}
-{#                        <ul class="commits">#}
-{#                        {%- for modification in material.modifications %}#}
-{#                            <li class="commit">#}
-{#                                <a class="message" href="{{ modification.gh_link(material) }}"><code>{{ modification.title()|truncate(80, true) }}</code></a>#}
-{#                                (<a class="author" href="mailto:{{ modification.author_email }}">{{ modification.author_name }}</a>)#}
-{#                            </li>#}
-{#                        {%- endfor %}#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {%- else %}#}
-{#                    <li>No materials?</li>#}
-{#                    <code>{{ pipeline|pprint }}</code>#}
-{#                {%- endfor %}#}
-{#                </ul>#}
-{#            </div>#}
-{#        </div>#}
-{#    {%- endfor %}#}
-{#    </div>#}
-{#    {%- endfor %}#}
 </body>
 </html>
