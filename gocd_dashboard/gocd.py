@@ -16,17 +16,20 @@ class GoCD:
     endpoints this will call. The API is a bit funny due to this...
     """
 
-    url = attr.ib()
+    server = attr.ib()
     username = attr.ib()
     password = attr.ib()
 
     session = attr.ib(
         default=attr.Factory(requests_futures.sessions.FuturesSession))
 
-    def get(self, endpoint, *args, **kwargs):
+    def url(self, endpoint, *args, **kwargs):
+        return self.server + endpoint.format(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
         """Make a request using requests-futures and return a Future."""
-        url = self.url + endpoint.format(*args, **kwargs)
-        return self.session.get(url, auth=(self.username, self.password))
+        return self.session.get(self.url(*args, **kwargs),
+                                auth=(self.username, self.password))
 
     @staticmethod
     def wait(response):
@@ -93,16 +96,18 @@ class Pipeline:
     git_materials = attr.ib()
     pipeline_materials = attr.ib()
 
+    gocd = attr.ib(repr=False)
+
     @classmethod
     def from_json(cls, data, gocd):
         revisions = data['build_cause']['material_revisions']
-
         return cls(
             name=data['name'],
             counter=data['counter'],
             stages=list(map(Stage.from_json, data['stages'])),
             git_materials=cls.git_materials_from_json(revisions),
-            pipeline_materials=cls.pipeline_materials_from_json(revisions, gocd))
+            pipeline_materials=cls.pipelines_from_materials(revisions, gocd),
+            gocd=gocd)
 
     @staticmethod
     def git_materials_from_json(material_revisions):
@@ -111,7 +116,7 @@ class Pipeline:
                 if revision['material']['type'] == 'Git']
 
     @classmethod
-    def pipeline_materials_from_json(cls, material_revisions, gocd):
+    def pipelines_from_materials(cls, material_revisions, gocd):
         return gocd.wait_pipelines([cls.from_material(m, gocd)
                                     for m in material_revisions
                                     if m['material']['type'] == 'Pipeline'])
@@ -123,6 +128,10 @@ class Pipeline:
         return gocd.pipeline_instance(name, counter)
 
     # Instance methods.
+
+    def link(self):
+        return self.gocd.url('/go/pipelines/value_stream_map/{}/{}',
+                             self.name, self.counter)
 
     def all_git_materials(self):
         """Recursively collect git materials."""
@@ -145,14 +154,23 @@ class Pipeline:
 @attr.s(frozen=True)
 class Stage:
     name = attr.ib()
+    counter = attr.ib()
     result = attr.ib()
 
     @classmethod
     def from_json(cls, stage):
-        return cls(name=stage['name'], result=stage.get('result', None))
+        debug(stage)
+        return cls(name=stage['name'],
+                   counter=stage['counter'],
+                   result=stage.get('result', None))
 
     def passed(self):
         return self.result in ('Passed', None)
+
+    def link(self, pipeline):
+        return pipeline.gocd.url('/go/pipelines/{}/{}/{}/{}',
+                                 pipeline.name, pipeline.counter,
+                                 self.name, self.counter)
 
 
 @attr.s(frozen=True)

@@ -3,6 +3,15 @@ body {
     background: #EEEEEE;
 }
 
+a,
+a:visited {
+    color: darkblue;
+}
+
+a:hover {
+    color: blue;
+}
+
 .header {
     text-align: center;
 }
@@ -25,8 +34,15 @@ body {
     margin-bottom: 0;
 }
 
+.pipeline.passed > .name {
+    color: darkgreen;
+}
+
 .group.failed > .name,
-.pipeline.failed > .name,
-.pipeline.failed .stage {
+.pipeline.failed > .name {
     color: red;
+}
+
+.name a {
+    color: inherit;
 }
