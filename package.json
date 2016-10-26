@@ -1,0 +1,13 @@
+{
+  "name": "gocd-dashboard",
+  "version": "1.0.0",
+  "description": "GoCD dashboard.",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Sam Clements <sam@borntyping.co.uk>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "materialize-css": "^0.97.7",
+    "node-sass": "^3.10.1"
+  }
+}

@@ -18,8 +18,8 @@ gunicorn 'gocd_dashboard:create_app()'
 Development
 -----------
 
-_Requirements: Python 3.3 or above, the `virtualenv` python package, the `sass`
-ruby package._
+_Requirements: Python 3.3 or above, the `virtualenv` python package, NodeJS
+and the `npm` package manager._
 
 Install the module into a Python virtualenv in development mode:
 
@@ -27,16 +27,22 @@ Install the module into a Python virtualenv in development mode:
 pip install -e .
 ```
 
+Install a [Sass] compiler and [materialize.css]:
+
+```bash
+npm install
+```
+
+Compile CSS files using `node-sass`:
+
+```bash
+./node_modules/.bin/node-sass --watch gocd_dashboard/static --output gocd_dashboard/static
+```
+
 Run the development server:
 
 ```bash
 gocd-dashboard run
-```
-
-Compile [Sass] files to CSS:
-
-```bash
-sass --watch gocd_dashboard/static
 ```
 
 Authors
@@ -47,4 +53,4 @@ Authors
 [Gunicorn]: http://gunicorn.org/
 [Sam Clements]: https://github.com/borntyping/
 [Sass]: http://sass-lang.com/
-
+[materialize.css]: http://materializecss.com/

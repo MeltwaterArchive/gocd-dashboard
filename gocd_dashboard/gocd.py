@@ -114,16 +114,39 @@ class Pipeline:
 
     # Instance methods.
 
-    def link(self):
+    @property
+    def title(self):
+        return "{}/{}".format(self.name, self.counter)
+
+    @property
+    def value_stream_map(self):
         return self.gocd.url('/go/pipelines/value_stream_map/{}/{}',
                              self.name, self.counter)
 
+    # Git materials
+
+    @property
+    def git_material(self):
+        if len(self.git_materials) == 1:
+            return self.git_materials[0]
+
     def all_git_materials(self):
         """Recursively collect git materials."""
-        return sorted(itertools.chain(
-            self.git_materials,
-            *(p.all_git_materials() for p in self.pipeline_materials)),
-            key=lambda m: m.url)
+        children = (p.all_git_materials() for p in self.pipeline_materials)
+        materials = itertools.chain(self.git_materials, *children)
+        return sorted(materials, key=lambda p: p.url)
+
+    # Pipeline materials
+
+    @property
+    def pipeline_material(self):
+        if len(self.pipeline_materials) == 1:
+            return self.pipeline_materials[0]
+
+    def all_pipeline_materials(self):
+        children = (p.all_pipeline_materials() for p in self.pipeline_materials)
+        materials = itertools.chain(self.pipeline_materials, *children)
+        return sorted(materials, key=lambda p: p.name)
 
     # Results
 
@@ -163,7 +186,7 @@ class GitMaterial:
     type = 'git'
 
     url = attr.ib()
-    modifications = attr.ib()
+    modifications = attr.ib(repr=False)
 
     # GitHub organisation and repository, used to create links.
     gh = attr.ib(convert=bool)
