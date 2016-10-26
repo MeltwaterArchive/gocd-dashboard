@@ -159,7 +159,6 @@ class Stage:
 
     @classmethod
     def from_json(cls, stage):
-        debug(stage)
         return cls(name=stage['name'],
                    counter=stage['counter'],
                    result=stage.get('result', None))
@@ -234,6 +233,8 @@ class GitModification:
     author_name = attr.ib()
     author_email = attr.ib()
 
+    RE_AUTHOR = re.compile('(.+) <(.+)>')
+
     @classmethod
     def from_json(cls, modification):
         author_name, author_email = cls.parse_author(modification['user_name'])
@@ -243,14 +244,15 @@ class GitModification:
                    author_name=author_name,
                    author_email=author_email)
 
-    RE_AUTHOR = re.compile('(.+) <(.+)>')
-
     @classmethod
     def parse_author(cls, author):
         match = cls.RE_AUTHOR.match(author)
         if not match:
             return author
         return match.groups()
+
+    def title(self):
+        return self.message.split('\n', 2)[0]
 
     def gh_link(self, material):
         return material.gh_link('commit', self.commit)

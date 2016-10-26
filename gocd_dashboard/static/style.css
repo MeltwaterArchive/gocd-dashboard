@@ -1,48 +1,55 @@
 body {
-    font-family: 'Ubuntu', 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
-    background: #EEEEEE;
-}
+  font-family: 'Ubuntu', 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+  background: #EEEEEE; }
 
-a,
-a:visited {
-    color: darkblue;
-}
+ul {
+  margin: 0;
+  padding-left: 1em; }
 
-a:hover {
-    color: blue;
-}
+ul.tree li {
+  list-style: disc; }
 
+/* Header */
 .header {
-    text-align: center;
-}
+  text-align: center; }
 
+/* Groups */
 .group {
-    padding: 1em 1em 0 1em;
-    border: 2px solid black;
-    margin-bottom: 1em;
-}
+  margin: 1em;
+  padding: 1em;
+  border: 2px solid black; }
+  .group.failed {
+    background: #EEBBBB; }
+    .group.failed > .name {
+      color: red; }
+  .group h2 {
+    margin: 0; }
 
-.group.failed {
-    background: #EEBBBB;
-}
+/* Pipelines */
+.pipeline {
+  font-size: 0.8em; }
+  .pipeline.passed > .name {
+    color: darkgreen; }
+  .pipeline.failed > .name {
+    color: red; }
+  .pipeline h3 {
+    font-size: 1.4em;
+    margin: 1.5em 0 0.5em; }
+  .pipeline h4 {
+    font-size: 1.2em;
+    margin: 0.5em 0; }
 
-.group h2 {
-    margin: 0;
-}
+/* Commits */
+.material a.message {
+  color: inherit;
+  text-decoration: none; }
+  .material a.message:hover {
+    text-decoration: underline; }
+.material a.author {
+  color: darkblue; }
 
-.group h3 {
-    margin-bottom: 0;
-}
-
-.pipeline.passed > .name {
-    color: darkgreen;
-}
-
-.group.failed > .name,
-.pipeline.failed > .name {
-    color: red;
-}
-
+/* Misc */
 .name a {
-    color: inherit;
-}
+  color: inherit; }
+
+/*# sourceMappingURL=style.css.map */
