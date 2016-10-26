@@ -1,39 +1,17 @@
-"""App blueprints."""
-
-import json
-import os
-
-import attr
 import flask
 
-import gocd_dashboard.gocd
+import gocd_dashboard.config
 
 ui = flask.Blueprint('ui', __name__)
 
 
-@attr.s(frozen=True)
-class Config:
-    groups = attr.ib()
-    gocd = attr.ib()
-
-    @classmethod
-    def from_file(cls, path):
-        with open(path, 'r') as f:
-            data = json.loads(f.read())
-
-        return cls(gocd=gocd_dashboard.gocd.GoCD(**data.get('gocd')),
-                   groups=data.get('groups'))
-
-    @classmethod
-    def load(cls):
-        return cls.from_file(os.getenv('GOCD_DASHBOARD_CONFIG', 'config.json'))
-
-    def load_groups(self):
-        return self.gocd.load_groups(self.groups)
+@ui.before_app_first_request
+def config():
+    flask.current_app.configuration = gocd_dashboard.config.Config.load()
 
 
 @ui.route('/')
 def dashboard():
-    config = Config.load()
-    return flask.render_template('home.html', groups=config.load_groups())
+    return flask.render_template(
+        'home.html', groups=flask.current_app.configuration.groups())
 

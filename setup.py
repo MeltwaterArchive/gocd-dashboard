@@ -31,7 +31,7 @@ setuptools.setup(
 
     entry_points={
         'console_scripts': [
-            'gocd-dashboard = gocd_dashboard.cli:main',
+            'gocd-dashboard = gocd_dashboard.__main__:main',
         ]
     },
 

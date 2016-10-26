@@ -4,7 +4,7 @@ import re
 import attr
 import requests_futures.sessions
 
-from gocd_dashboard.debug import debug
+import flask
 
 
 @attr.s(frozen=True)
@@ -28,6 +28,7 @@ class GoCD:
 
     def get(self, *args, **kwargs):
         """Make a request using requests-futures and return a Future."""
+        flask.current_app.logger.info(self.url(*args, **kwargs))
         return self.session.get(self.url(*args, **kwargs),
                                 auth=(self.username, self.password))
 
@@ -69,23 +70,6 @@ class GoCD:
         responses = [self.latest_pipeline_instance(n, self.wait(h))
                      for (n, h) in histories]
         return self.wait_pipelines(responses)
-
-    def load_groups(self, groups):
-        return [Group(name=group['name'],
-                      pipelines=self.load_pipelines(group['pipelines']))
-                for group in groups]
-
-
-@attr.s(frozen=True)
-class Group:
-    name = attr.ib()
-    pipelines = attr.ib()
-
-    def result(self):
-        return 'Passed' if self.passed() else 'Failed'
-
-    def passed(self):
-        return all(s.passed() for s in self.pipelines)
 
 
 @attr.s(frozen=True)

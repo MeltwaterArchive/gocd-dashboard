@@ -21,11 +21,23 @@ Development
 _Requirements: Python 3.3 or above, the `virtualenv` python package, the `sass`
 ruby package._
 
-Install the module into a Python virtualenv in development mode (`pip -e .`).
+Install the module into a Python virtualenv in development mode:
 
-Run the development server with `gocd-dashboard run`.
+```bash
+pip install -e .
+```
 
-Compile [Sass] files to CSS with `sass --watch gocd_dashboard/static`.
+Run the development server:
+
+```bash
+gocd-dashboard run
+```
+
+Compile [Sass] files to CSS:
+
+```bash
+sass --watch gocd_dashboard/static
+```
 
 Authors
 -------

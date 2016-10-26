@@ -26,8 +26,7 @@ def debug_app(app):
     try:
         import flask_debugtoolbar
     except ImportError:
-        pass
+        flask_debugtoolbar = None
     else:
-        # app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
         app.config['SECRET_KEY'] = 'debug-secret-key'
         flask_debugtoolbar.DebugToolbarExtension(app)
