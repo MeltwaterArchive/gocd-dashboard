@@ -117,9 +117,10 @@ class Pipeline:
 
     @classmethod
     def pipelines_from_materials(cls, material_revisions, gocd):
-        return gocd.wait_pipelines([cls.from_material(m, gocd)
-                                    for m in material_revisions
-                                    if m['material']['type'] == 'Pipeline'])
+        responses = [cls.from_material(m, gocd)
+                     for m in material_revisions
+                     if m['material']['type'] == 'Pipeline']
+        return sorted(gocd.wait_pipelines(responses), key=lambda p: p.name)
 
     @classmethod
     def from_material(cls, material, gocd):
@@ -135,9 +136,10 @@ class Pipeline:
 
     def all_git_materials(self):
         """Recursively collect git materials."""
-        return itertools.chain(
+        return sorted(itertools.chain(
             self.git_materials,
-            *(p.all_git_materials() for p in self.pipeline_materials))
+            *(p.all_git_materials() for p in self.pipeline_materials)),
+            key=lambda m: m.url)
 
     # Results
 
