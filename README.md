@@ -76,6 +76,11 @@ Run the development server:
 FLASK_DEBUG=1 gocd-dashboard run
 ```
 
+License
+-------
+
+Released under the MIT licence. See [LICENSE](./LICENSE). 
+
 Authors
 -------
 
