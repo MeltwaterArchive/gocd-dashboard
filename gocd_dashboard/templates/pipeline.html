@@ -1,13 +1,13 @@
 {% macro git_material_link(material) -%}
-    <a href="{{ material.link() }}">{{ material.name() }}</a>
+    <a href="{{ material.link }}">{{ material.name }}</a>
 {%- endmacro %}
 
 {% macro git_modification_link(modification, material) -%}
     <small>(<a href="{{ modification.gh_link(material) }}"><code>{{ modification.revision|truncate(7, true, '') }}</code></a>)</small>
 {%- endmacro %}
 
-{% macro pipeline_material_link(pipeline) -%}
-    <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
+{% macro pipeline_material_link(pipeline_material) -%}
+    <a href="{{ pipeline_material.pipeline.value_stream_map }}">{{ pipeline_material.pipeline.title }}</a>
 {%- endmacro %}
 
 {% macro pipeline(pipeline, group_passed=False) %}
@@ -23,8 +23,8 @@
             {%- elif pipeline.pipeline_material and not pipeline.git_material %}
                 Triggered by {{ pipeline_material_link(pipeline.pipeline_material) }}.
             {%- elif pipeline.pipeline_materials %}
-                Triggered by <a href="{{ pipeline.value_stream_map }}" title="{{ pipeline.pipeline_materials|map(attribute='title')|join(', ') }}">{{ pipeline.pipeline_materials|length }} pipelines</a>.
-            {% else %}
+                Triggered by <a href="{{ pipeline.value_stream_map }}">{{ pipeline.pipeline_materials|length }} pipelines</a>.
+            {% else %}all
                 No materials changed.
             {%- endif %}
             </p>
@@ -40,7 +40,7 @@
         </div>
 
         <div class="card-action">
-            {% for name, email in pipeline.all_commit_authors|sort %}
+            {% for name, email in pipeline.all_commit_authors()|sort %}
                 <div class="chip">
                     <img src="{{ email | gravatar }}" alt="{{ email }}" title="{{ name }} <{{ email }}>">
                     {{ name }}
