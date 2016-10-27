@@ -14,4 +14,3 @@ def config():
 def dashboard():
     return flask.render_template(
         'home.html', groups=flask.current_app.configuration.groups())
-

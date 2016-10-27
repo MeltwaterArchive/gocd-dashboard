@@ -1,5 +1,4 @@
 import itertools
-import pprint
 import re
 
 import attr
@@ -7,7 +6,7 @@ import requests_futures.sessions
 
 import flask
 
-from gocd_dashboard.utils import debug, once, Repr
+from gocd_dashboard.utils import Repr
 
 
 @attr.s(frozen=True)
@@ -67,7 +66,7 @@ class GoCD:
     def pipeline_history(self, name):
         return self.get('/go/api/pipelines/{}/history.json', name)
 
-    def latest_pipeline_instance(self, history):
+    def latest_pipeline(self, history):
         pipeline = history['pipelines'][0]
         return self.pipeline_instance(pipeline['name'], pipeline['counter'])
 
@@ -79,7 +78,7 @@ class GoCD:
     def load_pipelines(self, pipelines):
         """Creates a Pipeline object from the latest instance for each name."""
         history = (self.pipeline_history(name) for name in pipelines)
-        futures = (self.latest_pipeline_instance(self.wait(h)) for h in history)
+        futures = (self.latest_pipeline(self.wait(h)) for h in history)
         return [self.wait_pipeline(f) for f in futures]
 
 
@@ -96,17 +95,17 @@ class Pipeline(Repr):
                    git_materials, pipeline_materials, gocd)
 
     @classmethod
-    def git_materials_from_json(cls, material_revisions):
+    def git_materials_from_json(cls, revisions):
         """
         We want all git materials. The GoCD compare page shows commits from
         changed pipelines, not commits from changed materials.
         """
-        materials = cls.filter_revisions_by_type(material_revisions, 'Git')
+        materials = cls.filter_revisions_by_type(revisions, 'Git')
         return tuple(GitMaterial.from_json(r) for r in materials)
 
     @classmethod
-    def pipeline_materials_from_json(cls, material_revisions, gocd):
-        materials = cls.filter_revisions_by_type(material_revisions, 'Pipeline')
+    def pipeline_materials_from_json(cls, revisions, gocd):
+        materials = cls.filter_revisions_by_type(revisions, 'Pipeline')
         return tuple(PipelineMaterial.from_json(r, gocd) for r in materials)
 
     @staticmethod
@@ -213,7 +212,7 @@ class Stage:
     def from_json(cls, stage):
         return cls(name=stage['name'],
                    counter=stage['counter'],
-                   result=stage.get('result', None)) #TODO: NONE
+                   result=stage.get('result', None))
 
     @property
     def status(self):
