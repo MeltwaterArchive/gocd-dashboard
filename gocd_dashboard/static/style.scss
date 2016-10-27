@@ -2,10 +2,14 @@ body {
   background-color: #eeeeee;
 }
 
-.committers {
-  margin-top: 1em;
-}
+.card {
+  .card-title {
+    a {
+      color: inherit;
+    }
+  }
 
-.card .card-content {
-  padding-top: 10px;
+  .card-content {
+    padding-top: 10px;
+  }
 }

@@ -10,8 +10,8 @@
     <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
 {%- endmacro %}
 
-{% macro pipeline(pipeline) %}
-    <div class="card {% if not pipeline.passed() %}red lighten-4{% endif %}">
+{% macro pipeline(pipeline, group_passed=False) %}
+    <div class="card {% if not pipeline.passed() %}red{% elif group_passed %}green{% endif %} lighten-4">
         <div class="card-content">
             <span class="card-title">
                 <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>

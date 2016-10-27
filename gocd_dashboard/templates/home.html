@@ -22,7 +22,7 @@
                     <div class="section">
                         <h3 class="header center">{{ group.name }}</h3>
                         {%- for p in group.pipelines %}
-                            {{ pipeline(p) }}
+                            {{ pipeline(p, group.passed()) }}
                         {%- endfor %}
                     </div>
                 </div>
