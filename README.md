@@ -3,6 +3,8 @@ gocd-dashboard
 
 A leightwieght GoCD dashboard that can recursively show pipeline materials. 
 
+![Screenshot](docs/screenshot.png)
+
 Deployment
 ----------
 
