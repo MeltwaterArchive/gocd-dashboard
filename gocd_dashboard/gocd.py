@@ -88,12 +88,8 @@ class Pipeline:
     gocd = attr.ib(repr=False)
 
     @classmethod
-    def from_json(cls, data, gocd, changed=True):
+    def from_json(cls, data, gocd):
         revisions = data['build_cause']['material_revisions']
-
-        if changed:
-            revisions = [r for r in revisions if r['changed']]
-
         return cls(
             name=data['name'],
             counter=data['counter'],
@@ -104,15 +100,24 @@ class Pipeline:
 
     @staticmethod
     def git_materials_from_json(material_revisions):
+        """
+        We want all git materials. The GoCD compare page shows commits from
+        changed pipelines, not commits from changed materials.
+        """
         return [GitMaterial.from_json(r)
                 for r in material_revisions
                 if r['material']['type'] == 'Git']
 
     @classmethod
     def pipelines_from_materials(cls, material_revisions, gocd):
+        """
+        This selects only changed pipelines, as otherwise we cause a lot of API
+        requests, and can't extract any useful information about changes (as
+        then all commits from all materials are considered).
+        """
         responses = [cls.from_material(m, gocd)
                      for m in material_revisions
-                     if m['material']['type'] == 'Pipeline']
+                     if m['material']['type'] == 'Pipeline' if m['changed']]
         return sorted(gocd.wait_pipelines(responses), key=lambda p: p.name)
 
     @classmethod
