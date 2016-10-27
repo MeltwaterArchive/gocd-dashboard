@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='gocd-dashboard',
-    version='1.0.0',
+    version='1.0.1',
     author="Sam Clements",
     author_email="sam.clements@datasift.com",
     description="A dashboard to highlight GoCD pipeline statuses.",

@@ -7,7 +7,7 @@ import jinja2
 import gocd_dashboard.blueprints
 
 
-def create_app(info):
+def create_app(info=None):
     app = flask.Flask(__name__)
 
     flask_gravatar.Gravatar(app, rating='g', use_ssl=True)
