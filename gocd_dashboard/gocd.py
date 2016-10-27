@@ -144,16 +144,16 @@ class Pipeline(Repr):
         if len(self.git_materials) == 1:
             return self.git_materials[0]
 
+    @property
     def all_git_materials(self):
         """Recursively collect git materials."""
-        children = (p.pipeline.all_git_materials()
-                    for p in self.all_pipeline_materials() if p.changed)
-        materials = itertools.chain(self.git_materials, *children)
-        return sorted(materials, key=lambda p: p.url)
+        pipelines = (p for p in self.all_pipeline_materials() if p.changed)
+        children = (p.pipeline.all_git_materials for p in pipelines)
+        return itertools.chain(self.git_materials, *children)
 
     def all_commit_authors(self):
-        return set(itertools.chain(
-            *(m.commit_authors for m in self.all_git_materials())))
+        authors = (m.commit_authors for m in self.all_git_materials)
+        return set(itertools.chain(*authors))
 
     # Pipeline materials
 
@@ -170,14 +170,37 @@ class Pipeline(Repr):
 
     # Results
 
+    @property
     def result(self):
-        return 'Passed' if self.passed() else 'Failed'
+        if self.passed:
+            return 'Passed'
+        elif self.running:
+            return 'Running'
+        else:
+            return 'Failed'
 
+    @property
     def passed(self):
-        return all(s.passed() for s in self.stages)
+        return all(s.status in ('passed', None) for s in self.stages)
 
+    @property
+    def running(self):
+        return any(s.status == 'running' for s in self.stages)
+
+    @property
+    def running_stage(self):
+        return self._first_stage('running')
+
+    @property
+    def failed(self):
+        return any(s.status == 'failed' for s in self.stages)
+
+    @property
     def failed_stage(self):
-        return next((s for s in self.stages if not s.passed()), None)
+        return self._first_stage('failed')
+
+    def _first_stage(self, status):
+        return next((s for s in self.stages if s.status == status), None)
 
 
 @attr.s(frozen=True)
@@ -190,10 +213,18 @@ class Stage:
     def from_json(cls, stage):
         return cls(name=stage['name'],
                    counter=stage['counter'],
-                   result=stage.get('result', None))
+                   result=stage.get('result', None)) #TODO: NONE
 
-    def passed(self):
-        return self.result in ('Passed', None)
+    @property
+    def status(self):
+        if self.result == 'Passed':
+            return 'passed'
+        elif self.result == 'Unknown':
+            return 'running'
+        elif self.result == 'Failed':
+            return 'failed'
+        else:
+            return None
 
     def link(self, pipeline):
         return pipeline.link_stage(self.name, self.counter)
@@ -283,6 +314,7 @@ class GitMaterial:
 
     @property
     def commit_authors(self):
+        """A set of authors from this material's commits (modifications)."""
         return {(m.author_name, m.author_email) for m in self.modifications}
 
 

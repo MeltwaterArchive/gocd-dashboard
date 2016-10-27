@@ -50,4 +50,4 @@ class Group:
         return 'Passed' if self.passed() else 'Failed'
 
     def passed(self):
-        return all(s.passed() for s in self.pipelines)
+        return all(s.passed for s in self.pipelines)

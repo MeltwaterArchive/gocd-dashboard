@@ -10,8 +10,12 @@
     <a href="{{ pipeline_material.pipeline.value_stream_map }}">{{ pipeline_material.pipeline.title }}</a>
 {%- endmacro %}
 
+{% macro pipeline_stage_link(pipeline, stage) -%}
+    <a href="{{ stage.link(pipeline) }}" class="stage">{{ stage.name }}/{{ stage.counter }}</a>
+{%- endmacro %}
+
 {% macro pipeline(pipeline, group_passed=False) %}
-    <div class="card {% if not pipeline.passed() %}red{% elif group_passed %}green{% endif %} lighten-4">
+    <div class="card {% if pipeline.failed %}red{% elif pipeline.running %}yellow{% elif group_passed %}green{% endif %} lighten-4">
         <div class="card-content">
             <span class="card-title">
                 <a href="{{ pipeline.value_stream_map }}">{{ pipeline.title }}</a>
@@ -30,11 +34,12 @@
             </p>
 
             <p>
-            {%- if pipeline.passed() %}
+            {%- if pipeline.passed %}
                 All stages passed.
-            {% else %}
-                {% set failed_stage = pipeline.failed_stage() %}
-                Failed on stage <a href="{{ failed_stage.link(pipeline) }}" class="stage">{{ failed_stage.name }}/{{ failed_stage.counter }}</a>.
+            {%- elif pipeline.running %}
+                Currently running stage {{ pipeline_stage_link(pipeline, pipeline.running_stage) }}.
+            {%- elif pipeline.failed %}
+                Failed on stage {{ pipeline_stage_link(pipeline, pipeline.failed_stage) }}.
             {%- endif %}
             </p>
         </div>
