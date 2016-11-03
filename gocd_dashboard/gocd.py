@@ -26,6 +26,12 @@ class GoCD:
         default=attr.Factory(requests_futures.sessions.FuturesSession))
     cache = attr.ib(default=attr.Factory(dict))
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.session.close()
+
     # HTTP Requests.
 
     def url(self, endpoint, *args, **kwargs):

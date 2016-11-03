@@ -37,8 +37,9 @@ class Config:
                                         password=self.gocd_password)
 
     def groups(self):
-        for name, pipelines in self.group_definitions:
-            yield Group(name, self.gocd().load_pipelines(pipelines))
+        with self.gocd() as gocd:
+            for name, pipelines in self.group_definitions:
+                yield Group(name, gocd.load_pipelines(pipelines))
 
 
 @attr.s(frozen=True)
