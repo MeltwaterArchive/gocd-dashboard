@@ -9,7 +9,7 @@ import gocd_dashboard.gocd
 @attr.s(frozen=True)
 class Config:
     gocd = attr.ib()
-    group_definitions = attr.ib()
+    group_definitions = attr.ib(convert=list)
 
     @classmethod
     def from_file(cls, path):
