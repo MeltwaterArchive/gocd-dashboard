@@ -26,11 +26,11 @@ class GoCD:
         default=attr.Factory(requests_futures.sessions.FuturesSession))
     cache = attr.ib(default=attr.Factory(dict))
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.session.close()
+    @classmethod
+    def from_json(cls, data):
+        return cls(server=data['server'],
+                   username=data['username'],
+                   password=data['password'])
 
     # HTTP Requests.
 
@@ -38,19 +38,9 @@ class GoCD:
         return self.server + endpoint.format(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        """
-        Make a request using requests-futures and return a Future.
-
-        Responses are cached by url, create a new client for each request.
-        """
+        """Make a request using requests-futures and return a Future."""
         url = self.url(*args, **kwargs)
-
-        if url not in self.cache:
-            flask.current_app.logger.info(url)
-            self.cache[url] = self.session.get(
-                url, auth=(self.username, self.password))
-
-        return self.cache[url]
+        return self.session.get(url, auth=(self.username, self.password))
 
     @staticmethod
     def wait(response):
