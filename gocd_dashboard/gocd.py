@@ -40,7 +40,7 @@ class GoCD:
     def get(self, *args, **kwargs):
         """Make a request using requests-futures and return a Future."""
         url = self.url(*args, **kwargs)
-        return self.session.get(url, auth=(self.username, self.password))
+        return self.session.get(url, auth=(self.username, self.password), verify=False)
 
     @staticmethod
     def wait(response):
